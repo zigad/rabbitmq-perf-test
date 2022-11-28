@@ -137,8 +137,7 @@ public class Consumer extends AgentBase implements Runnable {
 
         if (timestampProvider.isTimestampInHeader()) {
             this.timestampExtractor = (properties, body) -> {
-                    Object timestamp = properties.getHeaders().get(Producer.TIMESTAMP_HEADER);
-                    return timestamp == null ? Long.MAX_VALUE : (Long) timestamp;
+                    return properties.getTimestamp().getTime();
             };
         } else {
             this.timestampExtractor = (properties, body) -> {
@@ -281,7 +280,7 @@ public class Consumer extends AgentBase implements Runnable {
                 long messageTimestamp = timestampExtractor.apply(properties, body);
                 long diff_time = timestampProvider.getDifference(nowTimestamp, messageTimestamp);
 
-                performanceMetrics.received(id.equals(envelope.getRoutingKey()) ? diff_time : 0L);
+                performanceMetrics.received(diff_time);
 
                 if (consumerLatency.simulateLatency()) {
                     ackIfNecessary(envelope, epochMessageCount.get(), ch);
